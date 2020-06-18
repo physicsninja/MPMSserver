@@ -209,41 +209,41 @@ begin
     
     quitting := False;
     quitter := 'quit:';
-    heartbeat_response := 'yeet:'; //what the server responds
-    heartbeat := 'heartbeat'; //msg to send to ask for updates, say 'I'm here'
-    MPMS_identifier := 'MPMS:'; //what the MPMS sends to the server to identify itself as the MPMS
-    IdTCPClient1 := TIdTCPClient.Create(nil); //create an instance of the IndyTCPClient
-    IdTCPClient1.Host := '127.0.0.1'; //localhost
-    IdTCPClient1.Port := 8081; // arbitrary
-    IdTCPClient1.ConnectTimeout := 2000; // 2 second time strikes a nice balance between responsive and responsible
+    heartbeat_response := 'yeet:'; 		//what the MPMS expects the server to respond. why yeet? Because. 
+    heartbeat := 'heartbeat'; 			//msg to send to ask for updates, say 'I'm here'
+    MPMS_identifier := 'MPMS:'; 		//what the MPMS sends to the server to identify itself as the MPMS
+    IdTCPClient1 := TIdTCPClient.Create(nil); 	//create an instance of the IndyTCPClient
+    IdTCPClient1.Host := '127.0.0.1'; 		//localhost
+    IdTCPClient1.Port := 8081; 			// arbitrary
+    IdTCPClient1.ConnectTimeout := 2000; 	// 2 second time strikes a nice balance between responsive and responsible
     repeat
 
-      IdTCPClient1.Connect;
-      IdTCPClient1.IOHandler.Write(MPMS_identifier +heartbeat);
-      response := IdTCPClient1.IOHandler.AllData;
-      IdTCPClient1.Disconnect;
-      left := Copy(response,0,5);
-      if CompareText(heartbeat_response,left) = 0 then begin
+      IdTCPClient1.Connect; //connect to the server
+      IdTCPClient1.IOHandler.Write(MPMS_identifier +heartbeat); // let the server know we are still around
+      response := IdTCPClient1.IOHandler.AllData; 		// listen to what the server has to say to us
+      IdTCPClient1.Disconnect; 					// disconnect from the server so we don't leave any loose ends
+      left := Copy(response,0,5); 				// get the leftmost 5 characters to figure out what to do
+      if CompareText(heartbeat_response,left) = 0 then begin 	// we got "yeet:" back
             reply := 'heartyeet';
             end
-      else if CompareText('mget:',left) = 0 then begin
+      else if CompareText('mget:',left) = 0 then begin		// we got a request for data from the MPMS
             reply := 'MPMS:reporting:' + FloatToStr(GetFromMPMS(response));
             end
-      else if CompareText('mset:',left) = 0 then begin
+      else if CompareText('mset:',left) = 0 then begin		// we got a request to set some parameter of the MPMS 
               if SetMpms(response) then
                 reply := 'MPMS:reporting:success';
             end
-      else if CompareText('gget:',left) = 0 then begin
+      else if CompareText('gget:',left) = 0 then begin		// we got a request to get something from a GPIB connnected instrument
             reply := 'MPMS:reporting:' + GetGPIB(response);
             end
-      else if CompareText('gset:',left) = 0 then begin
+      else if CompareText('gset:',left) = 0 then begin		// we got a request to set something on a GPIB connected instrument
             if SetGPIB(response) then reply := 'MPMS:reporting:success'
             else reply := 'MPMS:reporting:failure';
             end
-      else if CompareText(quitter,left) = 0 then begin
+      else if CompareText(quitter,left) = 0 then begin		// we were told to give up and shut down
             quitting := True;
             end
-      else
+      else							// we received a commmand we didn't understand, server is borked?, give up
          begin
          reply := '400:quitting';
          IdTCPClient1.Connect;
@@ -253,7 +253,7 @@ begin
          quitting := True;
          end ;
 
-      if (quitting = False) and (CompareText(reply,'heartyeet')<>0) then
+      if (quitting = False) and (CompareText(reply,'heartyeet')<>0) then // do we have data to send to the server? send it.
         begin
           IdTCPClient1.Connect;
           IdTCPClient1.IOHandler.Write(reply);
