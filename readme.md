@@ -6,9 +6,11 @@ Compile the MPMSserver Delphi library in this repository (you will likely need t
 
 Run the asynioserver.py. 
 
-Run the resulting DLL from the MPMSserver using the EDC option of the MultiVu sequence normally. 
+Run the resulting DLL from the MPMSserver using the EDC option of the MultiVu sequence normally. The Init and Exec functions need no arguments. 
 
-The EDC code will constantly poll the server for any new instructions and will return results to the server in response to commands (and I do mean constantly, there is no delay in the `repeat ... until` loop). Commands to send to the server from your favorite programming language (although if that language is Delphi why are you even reading this?) using TCP/IP are describe in NEEDTOWRITE.txt. You will either be sending a GPIB address + raw GPIB string or commands to the magnet/system itself. 
+While in the Exec function, the EDC code will constantly poll the server for any new instructions and will return results to the server in response to commands (and I do mean constantly, there is no delay in the `repeat ... until` loop). Commands to send to the server from your favorite programming language (although if that language is Delphi why are you even reading this?) using TCP/IP are describe in [NEEDTOWRITE.txt]. You will either be sending a GPIB address + raw GPIB string or commands to the magnet/system itself. 
+
+A demo notebook is forthcoming.
 
 ### Why does this exist
 
@@ -18,13 +20,9 @@ However, technology has advanced, but QD no longer supports their MPMS versions 
 
 ### What does this repository do
 
-Included are (currently untested) delphi .dpr file that should (probably) compile that implements a client that constantly polls another python server (asynioserver.py) that serves as a broker. Why not have the Delphi EDC code be the server? The way that the EDC is invoked by the MPMS means that I couldn't create (or at least not simply) a persistent server and that didn't break the structure the MPMS expects. Thus this was the compromise. User code should connect to the Python server and issue requests to the MPMS through it.
+This is a delphi .dpr file that should compile under Delphi7 with Indy10 that implements a client that constantly polls another python server (asynioserver.py) that serves as a broker. Why not have the Delphi EDC code be the server? The way that the EDC is invoked by the MPMS means that I couldn't create (or at least not simply) a persistent server and that didn't break the structure the MPMS expects. Thus this was the compromise. User code should connect to the Python server and issue requests to the MPMS through it. This is not an elegant solution and I almost feel dirty about doing it this way, but it works and it is fairly straightforward to debug.
 
-In order for the code I wrote to compile, you will need Delphi, Indy 10, and the MPMS Delphi extensions. Delphi 7 can be found for free at the winworldpc.com archive and Indy 10 from https://github.com/IndySockets/Indy (Other versions of Delphi and Indy >7 may work but I didn't test them). Installation instructions for Indy can be found http://ww2.indyproject.org/Sockets/Download/DevSnapshot.EN.aspx . I include a zipped version of Indy that I used to get everything working and a copy of the installation instructions in this repository for posterity in case the Indy project disappears. While I advise you not to trust my zipped archive on principle and offer no warranty for its validity, I will state that I provided it in good faith. Delphi 7 installs on Windows 10 just fine as far as I can tell (the MPMS MultiVu that originally came on floppies also does too!) 
-
-The basic structure of the installation process for Indy10 is to first uninstall Indy7 from Delphi7 by removing it from the Delphi IDE components list by using the `Components->Install Packages` tool in Delphi7 then removing all indy components from Delphi7 Lib, Source, and Bin by hand. One can almost search for `Indy*` and `Id*` and remove the results. Caution is necessarry because there are a few IDL files which are not associated with Indy. Indy components are prefixed by "Id". 
-
-Then unzip the Indy10 archive and run the `Fulld_7.bat` file in the Lib subdirectory of the unzipped Indy10 archive. Copy the resulting D7 folder into the Source folder of the Delphi installation. Then, use the `Component->Install Packages->Add Packages` tools to select all of the files in the D7 folder in the resulting dialogue box. Delphi may complain about missing components or being unable to find some packages, just silence those warnings, they do not affect the compilation of the file.
+In order for the code I wrote to compile, you will need Delphi, Indy 10, and the MPMS Delphi extensions. Delphi 7 can be found for free at the winworldpc.com archive and Indy 10 from https://github.com/IndySockets/Indy (Other versions of Delphi and Indy >7 may work but I didn't test them). Installation instructions for Indy can be found http://ww2.indyproject.org/Sockets/Download/DevSnapshot.EN.aspx . I include a zipped version of Indy that I used to get everything working, a copy of the installation instructions and some notes on installing in this repository for posterity in case the Indy project disappears. While I advise you not to trust my zipped archive on principle and offer no warranty for its validity, I will state that I provided it in good faith. Delphi 7 installs on Windows 10 just fine as far as I can tell (the MPMS MultiVu that originally came on floppies also does too!) 
 
 ### Why do we need Indy10, installing it tedious and I just want to get on with my life
 
